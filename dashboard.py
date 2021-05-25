@@ -1,4 +1,7 @@
 import multiprocessing
+import os
+import sys
+from contextlib import contextmanager
 
 import dash_bootstrap_components as dbc
 import numpy as np
@@ -10,6 +13,7 @@ count_cpu = multiprocessing.cpu_count()
 
 b = False
 
+
 @contextmanager
 def silence_stdout():
     new_target = open(os.devnull, "w")
@@ -20,12 +24,13 @@ def silence_stdout():
     finally:
         sys.stdout = old_target
 
+
 def launch_dashboard_api(
-    x, y, estimator, problem,
-    experiment_name, processing_pipeline=None):
-    
+        x, y, estimator, problem,
+        experiment_name, processing_pipeline=None):
     if len(x) > 1000:
-        print("Warning : you can not run shap analysis witn test > 1000 samples")
+        print(
+            "Warning : you can not run shap analysis witn test > 1000 samples")
         idx = np.random.choice(range(len(x)), size=100)
         x = x.iloc[idx]
         y = y.iloc[idx]
@@ -123,4 +128,3 @@ def launch_dashboard_api_from_expe(model, experiment_name: str):
         problem=model.data_instance.problem,
         experiment_name=experiment_name
     )
-
