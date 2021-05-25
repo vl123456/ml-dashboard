@@ -20,41 +20,44 @@ def silence_stdout():
     finally:
         sys.stdout = old_target
 
-def launch_dashboard_api(x, y, estimator, processing_pipeline, problem,
-                         experiment_name):
+def launch_dashboard_api(
+    x, y, estimator, problem,
+    experiment_name, processing_pipeline=None):
+    
     if len(x) > 1000:
-        print(
-            "Warning : you can not run shap analysis witn test > 1000 samples")
+        print("Warning : you can not run shap analysis witn test > 1000 samples")
         idx = np.random.choice(range(len(x)), size=100)
         x = x.iloc[idx]
         y = y.iloc[idx]
+    if processing_pipeline is None:
+        x_proj = x
+    else:
+        try:
+            if "feature_preproc" in str(
+                    processing_pipeline[-1]) and "passthrough" not in str(
+                processing_pipeline[-1].choice.preprocessor):
+                x_col = x.columns[
+                    processing_pipeline[-1].choice.preprocessor.get_support()]
+            else:
+                x_col = x.columns
 
-    try:
-        if "feature_preproc" in str(
-                processing_pipeline[-1]) and "passthrough" not in str(
-            processing_pipeline[-1].choice.preprocessor):
-            x_col = x.columns[
-                processing_pipeline[-1].choice.preprocessor.get_support()]
-        else:
-            x_col = x.columns
+            if b:
+                # FIXME : everything is here to extract feature name
+                #  but we need to map things correctly
+                dp = processing_pipeline.steps[0][1]
+                ohe = dp.column_transformer.transformers[0][1].steps[-1][1]
+                prep = ohe.choice.get_preprocessor()
+                x_col = prep.get_feature_names(x.columns)
 
-        if b:
-            # FIXME : everything is here to extract feature name
-            #  but we need to map things correctly
-            dp = processing_pipeline.steps[0][1]
-            ohe = dp.column_transformer.transformers[0][1].steps[-1][1]
-            prep = ohe.choice.get_preprocessor()
-            x_col = prep.get_feature_names(x.columns)
+            x_proj = pd.DataFrame(processing_pipeline.transform(x.to_numpy()),
+                                  index=x.index)
 
-        x_proj = pd.DataFrame(processing_pipeline.transform(x.to_numpy()),
-                              index=x.index)
-
-    except (ValueError, AttributeError):
-        x_col = range(
-            processing_pipeline.transform(x.to_numpy()).shape[1])
-        x_proj = pd.DataFrame(processing_pipeline.transform(x.to_numpy()),
-                              index=x.index,
-                              columns=x_col)
+        except (ValueError, AttributeError):
+            x_col = range(
+                processing_pipeline.transform(x.to_numpy()).shape[1])
+            x_proj = pd.DataFrame(processing_pipeline.transform(x.to_numpy()),
+                                  index=x.index,
+                                  columns=x_col)
 
     if problem == "classification":
         explainer = ClassifierExplainer(
