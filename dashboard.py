@@ -27,7 +27,7 @@ def silence_stdout():
 
 def launch_dashboard_api(
         x, y, estimator, problem,
-        experiment_name, processing_pipeline=None, port=8050):
+        experiment_name, processing_pipeline=None, port=8050, host="0.0.0.0"):
     if len(x) > 1000:
         print(
             "Warning : you can not run shap analysis witn test > 1000 samples")
@@ -77,7 +77,7 @@ def launch_dashboard_api(
     else:
         raise ("Problem %s unknown" % problem)
     args_tab = dict(
-        importances=False,
+        importances=True,
         model_summary=True,
         contributions=True,
         whatif=False,
@@ -116,7 +116,7 @@ def launch_dashboard_api(
             n_jobs=int(0.8 * count_cpu),
 
         )
-    db.run(port=port, mode="external")
+    db.run(port=port, mode="external", host=host)
 
 
 def launch_dashboard_api_from_expe(model, experiment_name: str):
