@@ -143,10 +143,6 @@ class CustomPredictionsTab(ExplainerComponent):
             ])
         ])
 
-ExplainerDashboard(explainer, [CustomModelTab, CustomPredictionsTab], 
-                        title='Titanic Explainer', header_hide_selector=True,
-                        bootstrap=FLATLY).run()
-
 @contextmanager
 def silence_stdout():
     new_target = open(os.devnull, "w")
